@@ -1,0 +1,253 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Agent {
+  id               Int             @id @default(autoincrement())
+  email            String          @unique
+  password         String
+  createdAt        DateTime        @default(now())
+  firstName        String
+  lastName         String
+  role             String          @default("USER")
+  phoneNumber      String? // New field for phone number
+  npnNumber        String? // New field for NPN number
+  licenseNo        String? // New field for license number
+  assignedLeads    Int             @default(0) // New field for assigned leads count
+  toggleStatus     Boolean         @default(true) // New field for toggle status
+  lastAssignedDate DateTime        @default(now()) // New field for last assigned date
+  webhook_url       String?
+
+  globalCap       Int?             @default(50)
+  monthlyCap       Int?             @default(0)
+  dailyCap       Int?             @default(0)
+  remainingCap       Int?             @default(50)
+  priority       Int?             @default(10)
+  weight    Int?             @default(1)
+  remainingWeight       Int?             @default(1)
+
+  campaigns        Campaign[]
+  policies         Policy[]        @relation("AgentPolicies")
+  locations        Location[]      @relation("AgentLocations")
+  agentLeads        AgentLeads[]
+  agentPolicies     AgentPolicies[]
+  agentLocations    AgentLocations[]
+  ghlTokens    GhlToken[]
+  ghlCompanies    GhlCompany[]
+
+  // Define indexes
+  @@index([firstName])
+  @@index([lastName])
+  @@index([role])
+  @@index([phoneNumber])
+  @@index([npnNumber])
+  @@index([licenseNo])
+  @@index([assignedLeads])
+  @@index([toggleStatus])
+  @@index([lastAssignedDate])
+  @@index([createdAt])
+  @@index([webhook_url])
+  @@index([globalCap])
+  @@index([monthlyCap])
+  @@index([dailyCap])
+  @@index([remainingCap])
+  @@index([priority])
+  @@index([weight])
+  @@index([remainingWeight])
+
+}
+
+model Campaign {
+  id               Int      @id @default(autoincrement())
+  campaign_uuid             String?   @default(uuid()) @unique
+  name             String
+  targetedAudience String
+  leadsCount       Int
+  createdAt        DateTime @default(now())
+  endTime          DateTime
+  toggleStatus     Boolean  @default(true)
+  agentId           Int? // Foreign key to User model
+  agent             Agent?    @relation(fields: [agentId], references: [id]) // Relation to User
+
+  // Define indexes
+  @@index([name])
+  @@index([targetedAudience])
+  @@index([leadsCount])
+  @@index([createdAt])
+  @@index([endTime])
+  @@index([toggleStatus])
+}
+
+model Lead {
+  id                Int         @id @default(autoincrement())
+  name              String?
+  phone             String?
+  email             String?
+  location          String?
+  insuranceType     String?
+  startInsurance    DateTime?
+  endInsurance      DateTime?
+  status             String?          @default("Assigned")
+  createdAt         DateTime    @default(now())
+  first_name        String?
+  last_name         String?
+  tags              String?
+  city              String?
+  state             String?
+  country           String?
+  timezone          String?
+  postal_code       String?
+  full_address      String?
+  contact_id        String?
+  spouse_gender     String?
+  plan_carrier_name String?
+  aor_agent_name    String?
+  aor_agent_npn     String?
+  ip_address        String?
+  spouse_dob        DateTime?
+  spouse_ssn        String?
+  plan_type         String?
+  your_gender       String?
+  webhook_data      String?
+  lead_response     Json?
+  agentLeads         AgentLeads[]
+  raw_lead_responses        RawLeadResponse[]
+
+  // Define indexes
+  @@index([name])
+  @@index([phone])
+  @@index([email])
+  @@index([location])
+  @@index([insuranceType])
+  @@index([endInsurance])
+  @@index([status])
+  @@index([createdAt])
+  @@index([first_name])
+  @@index([last_name])
+  @@index([tags])
+  @@index([city])
+  @@index([state])
+  @@index([country])
+  @@index([timezone])
+  @@index([postal_code])
+  @@index([full_address])
+  @@index([contact_id])
+  @@index([spouse_gender])
+  @@index([plan_carrier_name])
+  @@index([aor_agent_name])
+  @@index([aor_agent_npn])
+  @@index([ip_address])
+  @@index([spouse_dob])
+  @@index([spouse_ssn])
+  @@index([plan_type])
+  @@index([your_gender])
+
+}
+
+model RawLeadResponse {
+  id          Int       @id @default(autoincrement())
+  leadId      Int?       
+  leadResponse Json?     // Storing lead_response data as JSON
+  createdAt   DateTime  @default(now())
+  lead        Lead?      @relation(fields: [leadId], references: [id])
+}
+
+model Policy {
+  id           Int            @id @default(autoincrement())
+  name         String
+  description  String
+  agents        Agent[]         @relation("AgentPolicies")
+  agentPolicies AgentPolicies[]
+
+  // Define indexes
+  @@index([name])
+  @@index([description])
+}
+
+model Location {
+  id            Int             @id @default(autoincrement())
+  name          String
+  agents         Agent[]          @relation("AgentLocations")
+  agentLocations AgentLocations[]
+
+  // Define indexes
+  @@index([name])
+}
+
+
+// Pivot tables
+model AgentLeads {
+  id        Int      @id @default(autoincrement())
+  agentId    Int
+  leadId    Int
+  agent      Agent     @relation(fields: [agentId], references: [id])
+  lead      Lead     @relation(fields: [leadId], references: [id])
+  createdAt DateTime @default(now())
+}
+
+model AgentPolicies {
+  id        Int      @id @default(autoincrement())
+  agentId    Int
+  policyId  Int
+  agent      Agent     @relation(fields: [agentId], references: [id])
+  policy    Policy   @relation(fields: [policyId], references: [id])
+  createdAt DateTime @default(now())
+}
+
+model AgentLocations {
+  id         Int      @id @default(autoincrement())
+  agentId     Int
+  locationId Int
+  agent       Agent     @relation(fields: [agentId], references: [id])
+  location   Location @relation(fields: [locationId], references: [id])
+  createdAt  DateTime @default(now())
+}
+
+model Log {
+  id          Int       @id @default(autoincrement())
+  level       String    // Log level (e.g., 'error', 'info')
+  message     String    // Log message
+  timestamp   DateTime  @default(now()) // Log timestamp
+}
+
+model GhlToken {
+  id        Int      @id @default(autoincrement())
+  agentId   Int?     // Foreign key to Agent
+  agent     Agent?   @relation(fields: [agentId], references: [id])  // Relation to Agent
+  access_token     String?
+  token_type     String?
+  expires_in     Int?
+  refresh_token     String?
+  scope     String?
+  userType     String?
+  locationId     String?
+  companyId     String?
+  userId     String? 
+  createdAt DateTime @default(now())
+
+  @@index([agentId])
+  @@index([createdAt])
+  @@index([access_token])
+  @@index([locationId])
+  @@index([companyId])
+  @@index([userId])
+}
+
+model GhlCompany {
+  id        Int      @id @default(autoincrement())
+  agentId   Int?     // Foreign key to Agent
+  agent     Agent?   @relation(fields: [agentId], references: [id])  // Relation to Agent
+  name     String?
+  email     String?
+  createdAt DateTime @default(now())
+
+  @@index([agentId])
+  @@index([createdAt])
+  @@index([name])
+  @@index([email])
+}

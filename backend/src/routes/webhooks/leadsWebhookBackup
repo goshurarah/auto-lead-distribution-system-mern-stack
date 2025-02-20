@@ -1,0 +1,206 @@
+const express = require('express');
+const { PrismaClient } = require('@prisma/client');
+const router = express.Router();
+const prisma = new PrismaClient();
+const logger = require('../utils/logger');
+const axios = require('axios');
+const sendEmailToAgent = require('../emails/emailToAgent');
+const config = require("../config/config")
+
+
+const formatFieldName = (fieldName) => {
+  return fieldName
+    .toLowerCase()
+    .replace(/\s+/g, '_');
+};
+
+let MAX_LEADS_PER_AGENT = config.max_leads
+
+// Function to create a contact in GHL
+const createGHLContact = async (formattedBody, ghlDetails) => {
+  const ghlContactData = {
+    firstName: formattedBody.first_name || null,
+    lastName: formattedBody.last_name || null,
+    name: formattedBody.full_name || null,
+    email: formattedBody.email || null,
+    phone: formattedBody.phone || null,
+    address1: formattedBody.full_address || null,
+    city: formattedBody.city || null,
+    state: formattedBody.state || null,
+    postalCode: formattedBody.postal_code || null,
+    locationId: ghlDetails.locationId,
+    country: formattedBody.country || "US",
+    tags: formattedBody.tags || [],
+  };
+
+  try {
+    await axios.post(
+      "https://services.leadconnectorhq.com/contacts/",
+      ghlContactData,
+      {
+        headers: {
+          Authorization: `Bearer ${ghlDetails.access_token}`,
+          Version: "2021-07-28",
+        },
+      }
+    );
+    logger.info(`Contact created in GHL for locationId ${ghlDetails.locationId}`);
+  } catch (error) {
+    logger.error(`Failed to create contact in GHL: ${error.message}`);
+    if (error.response) {
+      logger.error(`GHL API error: ${JSON.stringify(error.response.data)}`);
+    }
+  }
+};
+
+router.post('/leads-webhook', async (req, res) => {
+  try {
+    const formattedBody = Object.keys(req.body).reduce((acc, key) => {
+      const formattedKey = formatFieldName(key);
+      acc[formattedKey] = req.body[key];
+      return acc;
+    }, {});
+    // Find an available agent using the same round-robin logic
+    const agents = await prisma.agent.findFirst({
+      where: {
+        toggleStatus: true,
+        role: 'USER',
+        agentLocations: {
+          some: {
+            location: {
+              name: {
+                equals: formattedBody.state, // Match formattedBody.state with location name
+                mode: 'insensitive',        // Enable case-insensitive matching
+              },
+            },
+          },
+        },
+      },
+      orderBy: [
+        { leadCap: 'desc' }, // Order by leadCap (high to low)
+        { leadWeight: 'desc' }, // Order by leadWeight (high to low)
+        { lastAssignedDate: 'asc' }, // Round-robin assignment: pick the agent who was assigned the least recently
+      ],
+    });
+
+    const agent = agents
+
+    let newLead;
+    let leadData = {
+      first_name: formattedBody.first_name ?? null,
+      last_name: formattedBody.last_name ?? null,
+      name: formattedBody.full_name ?? null,
+      email: formattedBody.email ?? null,
+      phone: formattedBody.phone ?? null,
+      tags: formattedBody.tags ?? null,
+      city: formattedBody.city ?? null,
+      state: formattedBody.state ?? null,
+      country: formattedBody.country ?? null,
+      timezone: formattedBody.timezone ?? null,
+      postal_code: formattedBody.postal_code ?? null,
+      full_address: formattedBody.full_address ?? null,
+      contact_id: formattedBody.contact_id ?? null,
+      spouse_gender: formattedBody.spouse_gender ?? null,
+      plan_carrier_name: formattedBody.plan_carrier_name ?? null,
+      aor_agent_name: formattedBody.aor_agent_name ?? null,
+      aor_agent_npn: formattedBody.aor_agent_npn ?? null,
+      ip_address: formattedBody.ip_address ?? null,
+      spouse_ssn: formattedBody.spouse_ssn ?? null,
+      plan_type: formattedBody.plan_type ?? null,
+      your_gender: formattedBody.spouse_gender ?? null,
+      lead_response: formattedBody ?? null,
+    };
+
+    if (agent) {
+      // Create the lead and assign it to the selected agent
+      newLead = await prisma.lead.create({
+        data: leadData,
+      });
+      await prisma.agentLeads.create({
+        data: {
+          agentId: agent.id,
+          leadId: newLead.id,
+        },
+      });
+
+      await prisma.agent.update({
+        where: { id: agent.id },
+        data: {
+          lastAssignedDate: new Date(), // Set current time for the last assigned date
+          assignedLeads: agent.assignedLeads + 1,
+          leadCap: agent.leadCapRemaining === 1
+            ? 0
+            : agent.leadWeight > 0
+              ? agent.leadCap
+              : agent.leadCap - 1,
+          leadWeight: agent.leadWeight > 0 ? agent.leadWeight - 1 : 0,
+          leadCapRemaining: agent.leadCapRemaining - 1,
+        },
+      });
+
+      let responseData = {
+        agentId: agent.agentId,
+        name: agent.name,
+        email: agent.email,
+        npnNumber: agent.npnNumber,
+        licenseNo: agent.licenseArea,
+        assignedLeads: agent.assignedLeads,
+        policyStatus: agent.policyStatus,
+        activeStatus: agent.toggleStatus
+      }
+      if (formattedBody.campaign_uuid) {
+        const campaignUUID = formattedBody.campaign_uuid
+        await prisma.campaign.update({
+          where: { campaign_uuid: campaignUUID },
+          data: {
+            agentId: agent.id 
+          },
+        });
+
+      }
+
+      res.json({ agent: responseData });
+
+      // Get GHL details and create a contact
+      const ghlDetails = await prisma.ghlToken.findFirst({
+        where: { agentId: agent.id },
+      });
+      if (ghlDetails && ghlDetails.access_token && ghlDetails.locationId) {
+        await createGHLContact(formattedBody, ghlDetails);
+      } else {
+        logger.error(`GhlDetails Not found against this agend ID =${agent.id}`);
+      }
+
+      //send data into agent webhook url
+      if (agent.webhook_url !== null) {
+        try {
+          await axios.post(agent.webhook_url, req.body, {
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          });
+          logger.info(`Data successfully sent to webhook: ${agent.webhook_url}`);
+        } catch (error) {
+          logger.error(`Failed to send data to this webhook=${agent.webhook_url}: ${error.message}`);
+        }
+      }
+      //send email to that agent that have assigned a lead
+      await sendEmailToAgent(agent.email, newLead.id);
+    } else {
+      // If no agent is available, create the lead without assigning it
+      newLead = await prisma.lead.create({
+        data: {
+          ...leadData,
+          status: "UnAssigned"
+        },
+      });
+      res.json({ message: "No any agent available for this state" });
+    }
+
+  } catch (error) {
+    logger.error('Error creating lead:', error.message);
+    res.status(500).json({ message: 'Error creating lead', error: error.message });
+  }
+});
+
+module.exports = router;

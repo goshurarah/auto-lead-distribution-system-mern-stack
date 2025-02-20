@@ -1,0 +1,238 @@
+.dashboard-container {
+  display: flex;
+  height: 100%;
+}
+
+.main-content {
+  flex: 1;
+  padding: 20px;
+  max-width: 1800px;
+  padding: 20px;
+  width: 100%; /* Take up remaining space */
+  height: 100vh; /* Ensure it stretches to full height */
+  overflow-y: auto;
+}
+
+.header_search {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.search-bar {
+  padding: 10px;
+  width: 50%;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+}
+
+.agents-section {
+  margin-bottom: 10px;
+}
+
+.agents-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.agents-table td {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 150px;
+}
+.agents-table th,
+.agents-table td {
+  padding: 10px;
+  text-align: start;
+  border-bottom: 1px solid #ccc;
+}
+
+.toggle-switch {
+  cursor: pointer;
+}
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 50px; /* Width of the toggle */
+  height: 28px; /* Height of the toggle */
+}
+thead {
+  position: sticky;
+  top: 0;
+}
+.toggle-switch input {
+  opacity: 0; /* Hide the default checkbox */
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc; /* Background color when off */
+  transition: 0.4s; /* Animation */
+  border-radius: 28px; /* Round edges */
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 24px; /* Height of the slider */
+  width: 24px; /* Width of the slider */
+  left: 2px; /* Position the slider */
+  bottom: 2px;
+  background-color: white; /* Slider color */
+  transition: 0.4s; /* Animation */
+  border-radius: 50%; /* Round shape */
+}
+
+/* Change background color when checked */
+input:checked + .slider {
+  background-color: #4f46e5; /* Background color when on */
+}
+
+/* Move the slider when checked */
+input:checked + .slider:before {
+  transform: translateX(22px); /* Move the slider */
+}
+
+.tabs {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  width: 100%;
+}
+
+.tab {
+  padding: 10px 15px;
+  cursor: pointer;
+  background-color: #f4f4f5;
+  border: none;
+  margin-right: 10px;
+  border-radius: 30px;
+  color: #4b4845;
+}
+
+.tab.active {
+  background-color: #3730a3;
+  color: #ffffff;
+  border-radius: 30px;
+}
+.tr_head_css {
+  background-color: #e9ecff;
+}
+.nametabs {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  /* padding: 10px; */
+}
+.add-button {
+  background-color: #624ff6;
+  width: 224px;
+  height: 48pxpx;
+  border: none;
+  padding: 10px;
+  gap: 10px;
+  border-radius: 4px;
+
+  color: #f8f9fa;
+  font-family: Inter;
+  font-size: 17.77px;
+  font-weight: 500;
+  line-height: 21.51px;
+  text-align: center;
+}
+
+.add-button:hover {
+  background-color: #45a049; /* Darker green on hover */
+}
+.p_title_heading {
+  position: relative;
+  top: 1.6rem;
+}
+.title_heading_head {
+  margin-right: 5rem;
+  /* font-family: Inter; */
+  font-size: 33.94px;
+  font-weight: 600;
+  line-height: 40.72px;
+  letter-spacing: -0.025em;
+  text-align: left;
+  width: 170px;
+  color: #3730a3;
+}
+.three_btn_all {
+  background: #624ff61a;
+  padding: 0.2rem;
+  border-radius: 25px;
+}
+.title_heading_head {
+  margin: auto;
+}
+
+.three_btn_all {
+  display: flex;
+  gap: 10px;
+}
+
+.add-button-container {
+  margin-left: auto;
+}
+.agents_tab {
+  display: flex;
+  gap: 15rem;
+}
+tr:nth-child(even) {
+  background-color: #f8f8f8;
+}
+.select_campaign {
+  width: 105px;
+  height: 33px;
+
+  padding: 5px;
+  gap: 9.05px;
+  border-radius: 6.65px;
+
+  font-family: Inter;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 22.62px;
+  text-align: left;
+  color: #fafafa;
+  background-color: #3730a3;
+}
+@media screen and (max-width: 1280px) {
+  .agents-table th,
+  .agents-table td {
+    font-size: 14px;
+  }
+}
+@media screen and (max-width: 768px) {
+  .tab.active {
+    font-size: 12px;
+  }
+  .tab {
+    font-size: 12px;
+  }
+  .agents_tab {
+    gap: 3rem;
+  }
+}
+@media screen and (max-width: 1440px) {
+  .agents-table th,
+  .agents-table td {
+    font-size: 12px;
+  }
+  .add-button {
+    width: 158px;
+  }
+  .add-button-container {
+    position: relative;
+    bottom: 3px;
+  }
+}

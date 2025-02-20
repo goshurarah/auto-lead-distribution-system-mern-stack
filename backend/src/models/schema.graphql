@@ -1,0 +1,410 @@
+# Scalars
+scalar DateTime
+scalar JSON
+
+type Agent {
+  id: ID!
+  email: String!
+  createdAt: String!
+  firstName: String!
+  lastName: String!
+  role: String
+  phoneNumber: String
+  npnNumber: String
+  licenseNo: String
+  assignedLeads: Int
+  toggleStatus: Boolean
+  lastAssignedDate: DateTime
+  webhook_url: String
+
+  globalCap: Int
+  monthlyCap: Int
+  dailyCap: Int
+  remainingCap: Int
+  priority: Int
+  weight: Int
+  remainingWeight: Int
+  dailyLeadsCount: Int
+  monthlyLeadsCount: Int
+
+  campaigns: [Campaign!]
+  leads: [Lead]
+  policies: [Policy]
+  locations: [Location]
+  agentLeads: [AgentLeads]
+  agentPolicies: [AgentPolicies]
+  agentLocations: [AgentLocations]
+}
+
+type Campaign {
+  id: ID!
+  campaign_uuid: String
+  name: String!
+  targetedAudience: String!
+  leadsCount: Int!
+  createdAt: String!
+  endTime: String!
+  toggleStatus: Boolean!
+  agent: Agent
+}
+
+type Lead {
+  id: ID!
+  name: String
+  phone: String
+  email: String
+  location: String
+  insuranceType: String
+  startInsurance: String
+  endInsurance: String
+  status: String
+  createdAt: String
+  first_name: String
+  last_name: String
+  tags: String
+  city: String
+  state: String
+  country: String
+  timezone: String
+  postal_code: String
+  full_address: String
+  contact_id: String
+  spouse_gender: String
+  plan_carrier_name: String
+  aor_agent_name: String
+  aor_agent_npn: String
+  ip_address: String
+  spouse_dob: String
+  spouse_ssn: String
+  plan_type: String
+  your_gender: String
+  webhook_data: String
+  lead_response: JSON
+  agentLeads: [AgentLeads!]!
+}
+
+type Policy {
+  id: ID!
+  name: String!
+  description: String!
+  agents: [Agent!]!
+  agentPolicies: [AgentPolicies]
+}
+
+type Location {
+  id: ID!
+  name: String!
+  agents: [Agent!]!
+  agentLocations: [AgentLocations]
+}
+
+# Pivot tables for many-to-many relationships
+type AgentLeads {
+  id: ID!
+  agent: Agent!
+  lead: Lead
+  createdAt: DateTime!
+}
+
+type AgentPolicies {
+  id: ID!
+  agent: Agent!
+  policy: Policy
+  createdAt: DateTime!
+}
+
+type AgentLocations {
+  id: ID!
+  agent: Agent!
+  location: Location
+  createdAt: DateTime!
+}
+
+type AuthPayload {
+  token: String!
+  agent: Agent!
+}
+type MessageResponse {
+  message: String!
+}
+# Query and Mutation Types
+type Query {
+  agents: [Agent!]!
+  agent(id: ID!): Agent
+  campaigns: [Campaign!]!
+  campaign(id: ID!): Campaign
+  leads: [Lead]
+  lead(id: ID!): Lead
+  policies: [Policy]
+  policy(id: ID!): Policy
+  locations: [Location]
+  location(id: ID!): Location
+
+  getLocationById(id: Int!): Location
+  getAllLocations: [Location!]!
+
+  getPolicyById(id: Int!): Policy
+  getAllPolicies: [Policy!]!
+
+  getProfile: Agent!
+  getCampaigns(page: Int = 1, perPage: Int = 50): CampaignPage!
+  getAllCampaigns(page: Int = 1, perPage: Int = 50): CampaignPage!
+  filterCampaigns(
+    filter: FilterCampaignsInput
+    page: Int = 1
+    perPage: Int = 50
+  ): CampaignPage!
+  getAgents(page: Int = 1, perPage: Int = 50): AgentPage!
+  filterAgents(
+    filter: FilterAgentsInput
+    page: Int = 1
+    perPage: Int = 50
+  ): AgentPage!
+  getLeads(page: Int = 1, perPage: Int = 50): LeadPage!
+  getAllLeads(page: Int = 1, perPage: Int = 50): LeadPage!
+  filterLeads(
+    filter: FilterLeadsInput
+    page: Int = 1
+    perPage: Int = 50
+  ): LeadPage!
+  getAgent(id: ID!): Agent
+  getCampaign(id: ID!): Campaign
+}
+type CampaignPage {
+  campaigns: [Campaign!]!
+  currentPage: Int!
+  totalPages: Int!
+  totalCampaigns: Int!
+}
+type AgentPage {
+  agents: [Agent!]!
+  currentPage: Int!
+  totalPages: Int!
+  totalAgents: Int!
+}
+type LeadPage {
+  leads: [Lead!]!
+  currentPage: Int!
+  totalPages: Int!
+  totalLeads: Int!
+}
+
+input UpdateCampaignInput {
+  name: String
+  targetedAudience: String
+  leadsCount: Int
+  endTime: String
+  toggleStatus: Boolean
+}
+input UpdateLeadInput {
+  name: String
+  phone: String
+  email: String
+  location: String
+  insuranceType: String
+  status: String
+  startInsurance: DateTime
+  endInsurance: DateTime
+  first_name: String
+  last_name: String
+  tags: String
+  city: String
+  state: String
+  country: String
+  timezone: String
+  postal_code: String
+  full_address: String
+  contact_id: String
+  spouse_gender: String
+  plan_carrier_name: String
+  aor_agent_name: String
+  aor_agent_npn: String
+  ip_address: String
+  spouse_dob: DateTime
+  spouse_ssn: String
+  plan_type: String
+  your_gender: String
+  webhook_data: String
+  lead_response: JSON
+}
+
+input UpdateAgentInput {
+  email: String
+  password: String
+  firstName: String
+  lastName: String
+  phoneNumber: String
+  npnNumber: String
+  licenseNo: String
+  role: String
+  assignedLeads: Int
+  toggleStatus: Boolean
+  lastAssignedDate: DateTime
+  webhook_url: String
+  locations: [Int]
+  policies: [Int]
+  globalCap: Int
+  monthlyCap: Int
+  dailyCap: Int
+  remainingCap: Int
+  priority: Int
+  weight: Int
+  remainingWeight: Int
+}
+input FilterAgentsInput {
+  email: String
+  password: String
+  firstName: String
+  lastName: String
+  phoneNumber: String
+  npnNumber: String
+  licenseNo: String
+  role: String
+  assignedLeads: Int
+  toggleStatus: Boolean
+  lastAssignedDate: DateTime
+  webhook_url: String
+  locations: [Int]
+  policies: [Int]
+  globalCap: Int
+  monthlyCap: Int
+  dailyCap: Int
+  remainingCap: Int
+  priority: Int
+  weight: Int
+  remainingWeight: Int
+  dailyLeadsCount: Int
+  monthlyLeadsCount: Int
+}
+
+input FilterCampaignsInput {
+  name: String
+  targetedAudience: String
+  leadsCount: Int
+  createdAt: String
+  endTime: String
+  toggleStatus: Boolean
+}
+
+input FilterLeadsInput {
+  name: String
+  phone: String
+  email: String
+  location: String
+  insuranceType: String
+  status: String
+  startInsurance: DateTime
+  endInsurance: DateTime
+  first_name: String
+  last_name: String
+  tags: String
+  city: String
+  state: String
+  country: String
+  timezone: String
+  postal_code: String
+  full_address: String
+  contact_id: String
+  spouse_gender: String
+  plan_carrier_name: String
+  aor_agent_name: String
+  aor_agent_npn: String
+  ip_address: String
+  spouse_dob: DateTime
+  spouse_ssn: String
+  plan_type: String
+  your_gender: String
+}
+
+type Mutation {
+  signup(
+    email: String!
+    password: String!
+    firstName: String!
+    lastName: String!
+    phoneNumber: String
+    npnNumber: String
+    licenseNo: String
+    locationIds: [Int]
+    policyIds: [Int]
+  ): AuthPayload!
+  login(email: String!, password: String!): AuthPayload!
+  forgotPassword(email: String!): MessageResponse!
+  resetPassword(token: String!, newPassword: String!): MessageResponse!
+  createAgent(
+    email: String!
+    password: String!
+    firstName: String!
+    lastName: String!
+    phoneNumber: String
+    npnNumber: String
+    licenseNo: String
+  ): Agent!
+
+  updateAgent(id: ID!, data: UpdateAgentInput!): Agent!
+
+  deleteAgent(id: ID!): Agent!
+
+  createCampaign(
+    name: String!
+    targetedAudience: String!
+    leadsCount: Int!
+    endTime: DateTime!
+    toggleStatus: Boolean
+    agentId: ID
+  ): Campaign!
+  createAdminCampaign(
+    name: String!
+    targetedAudience: String!
+    leadsCount: Int!
+    endTime: DateTime!
+    toggleStatus: Boolean
+    agentId: ID
+  ): Campaign!
+  updateCampaign(id: ID!, data: UpdateCampaignInput!): Campaign!
+
+  deleteCampaign(id: ID!): Campaign!
+
+  createLead(
+    name: String
+    phone: String
+    email: String
+    location: String
+    insuranceType: String
+    startInsurance: DateTime
+    endInsurance: DateTime
+    first_name: String
+    last_name: String
+    tags: String
+    city: String
+    state: String
+    country: String
+    timezone: String
+    postal_code: String
+    full_address: String
+    contact_id: String
+    spouse_gender: String
+    plan_carrier_name: String
+    aor_agent_name: String
+    aor_agent_npn: String
+    ip_address: String
+    spouse_dob: DateTime
+    spouse_ssn: String
+    plan_type: String
+    your_gender: String
+    webhook_data: String
+    lead_response: JSON
+  ): Lead!
+
+  updateLead(id: ID!, data: UpdateLeadInput!): Lead!
+
+  deleteLead(id: ID!): Lead!
+
+  createLocation(name: String!): Location!
+  updateLocation(id: Int!, name: String!): Location!
+  deleteLocation(id: Int!): Boolean!
+
+  createPolicy(name: String!, description: String!): Policy!
+  updatePolicy(id: Int!, name: String!, description: String!): Policy!
+  deletePolicy(id: Int!): Boolean!
+}

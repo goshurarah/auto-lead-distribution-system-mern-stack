@@ -1,0 +1,62 @@
+.agent-form-container {
+    display: flex;
+    justify-content: space-between;
+    padding: 20px;
+    font-family: Arial, sans-serif;
+  }
+  .form-section {
+    flex: 1;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+  }
+  label {
+    display: flex;
+    flex-direction: column;
+    font-weight: bold;
+    color: #666;
+  }
+  input {
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    margin-top: 5px;
+  }
+  .intro-section {
+    flex: 1;
+    margin-left: 40px;
+    background-color: #F9F9F9;
+    padding: 20px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+  }
+  .intro-section h3 {
+    color: #333;
+    font-size: 1.2em;
+    margin-bottom: 10px;
+  }
+  .introduction-text {
+    font-size: 1em;
+    color: #333;
+    line-height: 1.5;
+  }
+  button {
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    border: none;
+  }
+  .button-section {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+  }
+  .save-btn {
+    background-color: #4A3AFF;
+    color: white;
+  }
+  .cancel-btn {
+    background-color: #ddd;
+    color: #666;
+  }

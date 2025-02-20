@@ -1,0 +1,189 @@
+scalar JSON
+type User {
+  id: ID!
+  email: String!
+  createdAt: String!
+  firstName: String! 
+  lastName: String!
+  role:String
+}
+
+type Agent {
+  id: ID!
+  name: String!
+  phoneNumber: String!
+  email: String!
+  npnNumber: String!
+  agentId: String!
+  licenseNo: String!
+  licenseArea: String!
+  assignedLeads: Int
+  policyStatus: String!
+  toggleStatus: Boolean!
+  leads: [Lead!]!
+  createdAt: String!
+  lastAssignedDate: String
+  userId: ID
+}
+
+type Campaign {
+  id: ID!
+  name: String!
+  targetedAudience: String!
+  leadsCount: Int!
+  createdAt: String!
+  endTime: String!
+  toggleStatus: Boolean!
+  userId: ID
+}
+
+type Lead {
+  id: ID!
+  name: String
+  phone: String
+  email: String
+  location: String
+  insuranceType: String
+  assignedTo: Agent
+  agentId: Int
+  startInsurance: String
+  endInsurance: String
+  createdAt: String
+  first_name: String
+  last_name: String
+  tags: String
+  city: String
+  state: String
+  country: String
+  timezone: String
+  postal_code: String
+  full_address: String
+  contact_id: String
+  spouse_gender: String
+  plan_carrier_name: String
+  aor_agent_name: String
+  aor_agent_npn: String
+  ip_address: String
+  spouse_dob: String
+  spouse_ssn: String
+  plan_type: String
+  your_gender: String
+  webhook_data: String
+  lead_response: JSON
+  userId: ID
+  
+}
+
+type AuthPayload {
+  token: String!
+  user: User!
+}
+
+type Query {
+  getProfile: User!
+  getAgents(page: Int = 1, perPage: Int = 50): AgentPage!
+  getAgent(id: ID!): Agent
+  getCampaigns(page: Int = 1, perPage: Int = 50): CampaignPage!
+  getCampaign(id: ID!): Campaign
+  getLeads(page: Int = 1, perPage: Int = 50): LeadPage!
+  getLead(id: ID!): Lead
+}
+
+type AgentPage {
+  agents: [Agent!]!
+  currentPage: Int!
+  totalPages: Int!
+  totalAgents: Int!
+}
+type CampaignPage {
+  campaigns: [Campaign!]!
+  currentPage: Int!
+  totalPages: Int!
+  totalCampaigns: Int!
+}
+type LeadPage {
+  leads: [Lead!]!
+  currentPage: Int!
+  totalPages: Int!
+  totalLeads: Int!
+}
+input AgentInput {
+  id: Int! 
+}
+
+input UpdateAgentInput {
+  name: String
+  phoneNumber: String
+  email: String
+  npnNumber: String
+  agentId: String
+  licenseNo: String
+  licenseArea: String
+  assignedLeads: Int
+  policyStatus: String
+  toggleStatus: Boolean
+}
+
+input UpdateCampaignInput {
+  name: String
+  targetedAudience: String
+  leadsCount: Int
+  endTime: String
+  toggleStatus: Boolean
+}
+
+input UpdateLeadInput {
+  name: String
+  phone: String
+  email: String
+  location: String
+  insuranceType: String
+  startInsurance: String
+  endInsurance: String
+}
+type Mutation {
+  signup(email: String!, password: String!,firstName: String!, lastName: String!): AuthPayload!
+  login(email: String!, password: String!): AuthPayload!
+  forgotPassword(email: String!): MessageResponse!
+  resetPassword(token: String!, newPassword: String!): MessageResponse!
+  createAgent(
+    name: String!
+    phoneNumber: String!
+    email: String!
+    npnNumber: String!
+    agentId: String!
+    licenseNo: String!
+    licenseArea: String!
+    assignedLeads: Int
+    policyStatus: String!
+    userId: ID
+  ): Agent!
+  createCampaign(
+    name: String!
+    targetedAudience: String!
+    leadsCount: Int!
+    endTime: String!
+    userId: ID
+  ): Campaign!
+  createLead(
+    name: String
+    phone: String
+    email: String
+    location: String
+    insuranceType: String
+    assignedTo: AgentInput  # Change this line to use AgentInput
+    startInsurance: String
+    endInsurance: String
+    userId: ID
+  ): Lead!
+  deleteAgent(id: ID!): Agent!
+  deleteCampaign(id: ID!): Campaign!
+  deleteLead(id: ID!): Lead!
+  updateAgent(id: ID!, data: UpdateAgentInput!): Agent!
+  updateCampaign(id: ID!, data: UpdateCampaignInput!): Campaign!
+  updateLead(id: ID!, data: UpdateLeadInput!): Lead!
+}
+
+type MessageResponse {
+  message: String!
+}
