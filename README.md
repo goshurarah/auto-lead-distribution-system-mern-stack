@@ -1,0 +1,4 @@
+# Auto Lead Distribution
+I developed the Auto Lead Distribution System, a powerful platform designed to automate and optimize lead assignment based on predefined priorities. The system features a seamless React frontend integrated with Apollo Client for efficient state management. On the backend, I implemented Node.js, Express, and Apollo Server, ensuring a scalable and high-performance architecture. The data is stored securely in PostgreSQL, allowing for efficient querying and management of leads. The platform enhances agent productivity by streamlining lead distribution and automating workflows. Additionally, I integrated third-party tools like GoHighLevel (GHL) to provide seamless CRM functionality. This project significantly improves lead management efficiency, reduces manual work, and enhances overall business operations.
+
+![lead-distribution-system](https://github.com/user-attachments/assets/70ea9085-17cb-4c17-825f-f3b1708b0823)
